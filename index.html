@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Pesce d'Aprile 🐟</title>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --orange: #FF6B2B;
+      --blue: #0099CC;
+      --yellow: #FFD93D;
+      --white: #fff;
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: #000;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    /* ── GRIGLIA VIDEO ── */
+    #grid {
+      position: fixed;
+      inset: 0;
+      display: grid;
+      --cols: 4;
+      --rows: 3;
+      grid-template-columns: repeat(var(--cols), 1fr);
+      grid-template-rows: repeat(var(--rows), 1fr);
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    .cell {
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cell video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    /* ── FISH RAIN ── */
+    .fish {
+      position: fixed;
+      top: -80px;
+      animation: fishFall linear infinite;
+      z-index: 5;
+      pointer-events: none;
+      user-select: none;
+    }
+
+    @keyframes fishFall {
+      0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(20deg); opacity: 0; }
+    }
+
+    /* ── OVERLAY ── */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.45);
+      backdrop-filter: blur(2px);
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* ── POPUP ── */
+    #popup {
+      position: relative;
+      background: var(--white);
+      border-radius: 28px;
+      padding: 3rem 2.5rem 2.5rem;
+      max-width: 480px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 0 0 6px var(--orange), 0 0 0 12px var(--yellow),
+                  0 30px 80px rgba(0,0,0,.5);
+      animation: popIn .6s cubic-bezier(.175,.885,.32,1.275) forwards;
+      z-index: 20;
+    }
+
+    @keyframes popIn {
+      0%   { transform: scale(0) rotate(-5deg); opacity: 0; }
+      100% { transform: scale(1) rotate(0deg); opacity: 1; }
+    }
+
+    #popup::before {
+      content: '🐟';
+      position: absolute;
+      top: -46px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 3.5rem;
+      animation: wobble 1.5s ease-in-out infinite;
+    }
+
+    @keyframes wobble {
+      0%,100% { transform: translateX(-50%) rotate(-10deg); }
+      50%      { transform: translateX(-50%) rotate(10deg); }
+    }
+
+    .ribbon {
+      position: absolute;
+      top: 18px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--orange);
+      color: #fff;
+      font-family: 'Fredoka One', cursive;
+      font-size: .75rem;
+      letter-spacing: .15em;
+      padding: 3px 18px;
+      border-radius: 20px;
+    }
+
+    .title {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.6rem, 5vw, 2.4rem);
+      color: var(--orange);
+      margin-top: 1.2rem;
+      text-shadow: 3px 3px 0 var(--yellow);
+    }
+
+    .subtitle {
+      margin-top: 1.2rem;
+      font-weight: 900;
+      color: var(--blue);
+    }
+
+    .emoji-row {
+      margin-top: 1.2rem;
+      font-size: 1.8rem;
+    }
+
+    .btn-close {
+      margin-top: 1.8rem;
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      font-family: 'Fredoka One', cursive;
+      padding: .7rem 2.2rem;
+      border-radius: 50px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="grid"></div>
+  <div id="fish-container"></div>
+
+  <div id="overlay">
+    <div id="popup">
+      <span class="ribbon">1 Aprile</span>
+      <div class="title">Buon Pesce d'Aprile!!!</div>
+      <div class="subtitle">sei stato ciocco-pesciato</div>
+      <div class="emoji-row">🐟🎣🐠🐡</div>
+      <button class="btn-close" onclick="closePopup()">PIRLAAA 😏</button>
+    </div>
+  </div>
+
+  <script>
+    const VIDEO_SRC = './pesce.mp4';
+    const COLS = 4;
+    const ROWS = 3;
+    const TOTAL = COLS * ROWS;
+
+    const grid = document.getElementById('grid');
+    grid.style.setProperty('--cols', COLS);
+    grid.style.setProperty('--rows', ROWS);
+
+    const videos = [];
+
+    for (let i = 0; i < TOTAL; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+
+      const vid = document.createElement('video');
+      vid.muted = true;
+      vid.loop = true;
+      vid.playsInline = true;
+      vid.autoplay = true;
+      vid.src = VIDEO_SRC;
+
+      cell.appendChild(vid);
+      grid.appendChild(cell);
+      videos.push(vid);
+    }
+
+    const master = videos[0];
+
+    master.addEventListener('canplaythrough', () => {
+      master.play().then(() => {
+        syncAll();
+        setInterval(syncAll, 5000);
+      });
+    }, { once: true });
+
+    function syncAll() {
+      const t = master.currentTime;
+      videos.forEach((v, i) => {
+        if (i === 0) return;
+        v.currentTime = t;
+        if (v.paused) v.play();
+      });
+    }
+
+    master.load();
+
+    const FISH_EMOJIS = ['🐟','🐠','🐡','🎣','🐙','🦈','🦐'];
+    const fishContainer = document.getElementById('fish-container');
+
+    function spawnFish() {
+      const el = document.createElement('div');
+      el.className = 'fish';
+      el.textContent = FISH_EMOJIS[Math.floor(Math.random() * FISH_EMOJIS.length)];
+      el.style.left = Math.random() * 100 + 'vw';
+      const dur = 4 + Math.random() * 5;
+      el.style.animationDuration = dur + 's';
+      el.style.animationDelay = Math.random() * -dur + 's';
+      el.style.fontSize = (1.2 + Math.random() * 2) + 'rem';
+      fishContainer.appendChild(el);
+      setTimeout(() => el.remove(), (dur + 1) * 1000);
+    }
+
+    for (let i = 0; i < 15; i++) spawnFish();
+    setInterval(spawnFish, 400);
+
+    function closePopup() {
+      const overlay = document.getElementById('overlay');
+      overlay.style.opacity = '0';
+      setTimeout(() => overlay.remove(), 400);
+    }
+  </script>
+</body>
+</html>
