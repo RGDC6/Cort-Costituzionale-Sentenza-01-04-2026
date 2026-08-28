@@ -3,4 +3,9 @@ export function divide(a: number, b: number): number {
     throw new Error("Division by zero");
   }
   return a / b;
+  return a / b;
+    return a / b;
+      return a / b;
+        return a / b;
+          return a / b;
 }
